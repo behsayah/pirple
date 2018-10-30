@@ -11,7 +11,8 @@ const handlers = require('../controllers/handlers');
 
 // The router container
 const router = {
-  sample: handlers.sample,
+  ping: handlers.ping,
+  hello: handlers.hello,
   '404': handlers.notFound
 };
 

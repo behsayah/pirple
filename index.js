@@ -5,8 +5,10 @@
  */
 
 // Dependencies (NodeJS)
+const fs = require('fs');
 const url = require('url');
 const http = require('http');
+const https = require('https');
 const StringDecoder = require('string_decoder').StringDecoder;
 
 // Dependecies (local)
@@ -14,7 +16,35 @@ const config = require('./helper/config');
 const routers = require('./helper/router');
 
 // Configure the server to respond to all requests with a string
-const server = http.createServer((req, res) => {
+const httpServer = http.createServer((req, res) => {
+  unifiedServer(req, res);
+});
+// Start the HTTP server
+httpServer.listen(config.httpPort, () => {
+  console.log(
+    '\x1b[36m%s\x1b[0m',
+    'The HTTP server is running on port ' + config.httpPort
+  );
+});
+
+// Instantiate the HTTPs Server
+var httpsServerOptions = {
+  key: fs.readFileSync('./https/key.pem'),
+  cert: fs.readFileSync('./https/cert.pem')
+};
+const httpsServer = https.createServer(httpsServerOptions, (req, res) => {
+  console.log('GET HTTPS request');
+  unifiedServer(req, res);
+});
+// Start the HTTPs server
+httpsServer.listen(config.httpsPort, () => {
+  console.log(
+    '\x1b[36m%s\x1b[0m',
+    'The HTTP server is running on port ' + config.httpsPort
+  );
+});
+// All the server logic for both the http and https server
+const unifiedServer = (req, res) => {
   // Parse the url
   const parsedUrl = url.parse(req.url, true);
   // Get the path
@@ -25,7 +55,7 @@ const server = http.createServer((req, res) => {
   // Get the query string as an object
   const queryStringObject = parsedUrl.query;
   // Get the header as an object
-  const header = req.headers;
+  const headers = req.headers;
   // @REGION Get the payload, if any.
   const decoder = new StringDecoder('utf-8');
   let buffer = '';
@@ -58,20 +88,15 @@ const server = http.createServer((req, res) => {
       const payloadString = JSON.stringify(payload);
 
       // Return the response
-      res.writeHead(payloadString);
-      res.end('Hello Word!');
+      res.setHeader('Content-Type', 'application/json');
+      res.writeHead(statusCode);
+      res.end(payloadString);
+
+      const logPath = trimmedPath == '' ? 'localhost' : trimmedPath;
 
       // Console Log :
-      console.log('\x1b[32m%s\x1b[0m', 'Response was sent : ' + trimmedPath);
+      console.log('\x1b[32m%s\x1b[0m', 'Response was sent : ' + logPath);
     });
   });
   // @END-REGION
-  res.end('Hello World! ');
-});
-
-server.listen(config.httpPort, () => {
-  console.log(
-    '\x1b[36m%s\x1b[0m',
-    'The HTTP server is running on port ' + config.httpPort
-  );
-});
+};

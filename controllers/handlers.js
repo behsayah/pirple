@@ -11,11 +11,13 @@
 // The main container
 const handlers = {};
 
-handlers.sample = (data, callback) => {
-  callback(200, { name: 'sample handler' });
+handlers.ping = (data, callback) => {
+  callback(200);
 };
 handlers.notFound = (data, callback) => {
   callback(404);
 };
-
+handlers.hello = (data, callback) => {
+  callback(200, { msg: 'Welcome to the first RESTful application' });
+};
 module.exports = handlers;
