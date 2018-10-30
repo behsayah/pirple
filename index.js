@@ -11,6 +11,7 @@ const StringDecoder = require('string_decoder').StringDecoder;
 
 // Dependecies (local)
 const config = require('./helper/config');
+const routers = require('./helper/router');
 
 // Configure the server to respond to all requests with a string
 const server = http.createServer((req, res) => {
@@ -22,7 +23,7 @@ const server = http.createServer((req, res) => {
   // Get the HTTP method
   const method = req.method.toUpperCase();
   // Get the query string as an object
-  const queryString = parsedUrl.query;
+  const queryStringObject = parsedUrl.query;
   // Get the header as an object
   const header = req.headers;
   // @REGION Get the payload, if any.
@@ -33,8 +34,36 @@ const server = http.createServer((req, res) => {
   });
   req.on('end', () => {
     buffer += decoder.end();
-    // Send the response
-    res.end('Hello Word!');
+    // Check the router for a matching path for a handler. If one is not found, use the notFound handler instead.
+    const chosenHandler =
+      typeof routers[trimmedPath] !== 'undefined'
+        ? routers[trimmedPath]
+        : routers['404'];
+
+    // Construct the data object to send to the handler
+    const data = {
+      trimmedPath: trimmedPath,
+      queryStringObject: queryStringObject,
+      method: method,
+      headers: headers,
+      payload: buffer
+    };
+
+    chosenHandler(data, (statusCode, payload) => {
+      // Use the status code returned from the handler, or set the default status code to 200
+      statusCode = typeof statusCode == 'number' ? statusCode : 200;
+
+      payload = typeof payload == 'object' ? payload : {};
+
+      const payloadString = JSON.stringify(payload);
+
+      // Return the response
+      res.writeHead(payloadString);
+      res.end('Hello Word!');
+
+      // Console Log :
+      console.log('\x1b[32m%s\x1b[0m', 'Response was sent : ' + trimmedPath);
+    });
   });
   // @END-REGION
   res.end('Hello World! ');
