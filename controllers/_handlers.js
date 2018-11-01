@@ -7,6 +7,7 @@
 
 // Dependencies (NodeJS)
 // Dependencies (local)
+const users = require('./users');
 
 // The main container
 const handlers = {};
@@ -20,4 +21,5 @@ handlers.notFound = (data, callback) => {
 handlers.hello = (data, callback) => {
   callback(200, { msg: 'Welcome to the first RESTful application' });
 };
+handlers.users = users;
 module.exports = handlers;

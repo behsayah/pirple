@@ -12,8 +12,9 @@ const https = require('https');
 const StringDecoder = require('string_decoder').StringDecoder;
 
 // Dependecies (local)
-const config = require('./helper/config');
-const routers = require('./helper/router');
+const config = require('./lib/config');
+const routers = require('./lib/router');
+const helper = require('./lib/helper');
 
 // Configure the server to respond to all requests with a string
 const httpServer = http.createServer((req, res) => {
@@ -51,7 +52,7 @@ const unifiedServer = (req, res) => {
   const path = parsedUrl.pathname;
   const trimmedPath = path.replace(/^\/+|\/+$/g, '');
   // Get the HTTP method
-  const method = req.method.toUpperCase();
+  const method = req.method.toLowerCase();
   // Get the query string as an object
   const queryStringObject = parsedUrl.query;
   // Get the header as an object
@@ -76,7 +77,7 @@ const unifiedServer = (req, res) => {
       queryStringObject: queryStringObject,
       method: method,
       headers: headers,
-      payload: buffer
+      payload: helper.parseJsonToObject(buffer)
     };
 
     chosenHandler(data, (statusCode, payload) => {
