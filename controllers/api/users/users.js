@@ -7,8 +7,8 @@
 
 // Dependencies (Node JS)
 // Dependencies (Localhost)
-const _data = require('../lib/data');
-const helper = require('../lib/helper');
+const _data = require('../../../lib/data');
+const helper = require('../../../lib/helper');
 
 // Main Container
 const lib = function(data, callback) {
@@ -27,6 +27,7 @@ _user.folder = 'users';
 
 // Save a user
 _user.post = function(data, callback) {
+  console.log('USER POST');
   console.log('Payload : ', data.payload);
   // Validate data
   const firstName =
@@ -91,18 +92,21 @@ _user.post = function(data, callback) {
 // Optional data :  none
 // @TODO Only let an authenticated user access their object. Dont let them access anyone elses.
 _user.get = function(data, callback) {
+  console.log('USER GET');
   // Validate required data.
   const phone =
-    typeof data.payload.phone == 'string' && data.payload.phon.trim().length > 0
-      ? data.payload.phon.trim()
+    typeof data.queryStringObject.phone == 'string' &&
+    data.queryStringObject.phone.trim().length > 0
+      ? data.queryStringObject.phone.trim()
       : false;
-
+  console.log('PHONE =====> ', phone);
   if (phone) {
     // Lookup the user
-    _data.read(_user.folder, phone, function(err, data) {
-      if (!err && data) {
-        delete data.hashedPassword;
-        callback(200, data);
+    _data.read(_user.folder, phone, function(err, userData) {
+      console.log(userData);
+      if (!err && userData) {
+        delete userData.hashedPassword;
+        callback(200, userData);
       } else {
         callback(404);
       }
@@ -116,6 +120,8 @@ _user.get = function(data, callback) {
 // Optional data : firstName, lastName, password (at least one must be specified)
 // @TODO Only let an authenticated user up their object. Dont let them access update elses.
 _user.put = function(data, callback) {
+  console.log('USER PUT');
+
   // Check for required field
   const phone =
     typeof data.payload.phone == 'string' &&

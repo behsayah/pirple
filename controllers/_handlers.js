@@ -7,7 +7,7 @@
 
 // Dependencies (NodeJS)
 // Dependencies (local)
-const users = require('./users');
+const users = require('./api/users/users');
 
 // The main container
 const handlers = {};
