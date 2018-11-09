@@ -9,24 +9,25 @@
 // Dependencies (Localhost)
 const _data = require('../../../lib/data');
 const helper = require('../../../lib/helper');
+const libTokens = require('../../../lib/token');
 
 // Main Container
 const lib = function(data, callback) {
   const acceptableMethods = ['post', 'get', 'put', 'delete'];
   if (acceptableMethods.indexOf(data.method) > -1) {
-    _user[data.method](data, callback);
+    _users[data.method](data, callback);
   } else {
     callback(404);
   }
 };
 
 // Main Container for APIs
-const _user = {};
+const _users = {};
 
-_user.folder = 'users';
+_users.folder = 'users';
 
 // Save a user
-_user.post = function(data, callback) {
+_users.post = function(data, callback) {
   console.log('USER POST');
   console.log('Payload : ', data.payload);
   // Validate data
@@ -45,19 +46,20 @@ _user.post = function(data, callback) {
     data.payload.phone.trim().length > 0
       ? data.payload.phone.trim()
       : false;
+  const address =
+    typeof data.payload.address == 'string' &&
+    data.payload.address.trim().length > 0
+      ? data.payload.address.trim()
+      : false;
   const password =
     typeof data.payload.password == 'string' &&
     data.payload.password.trim().length > 0
       ? data.payload.password.trim()
       : false;
 
-  console.log('firstName', firstName);
-  console.log('lastName', lastName);
-  console.log('PHONE', phone);
-  console.log('password', password);
-  if (firstName && lastName && phone && password) {
+  if (firstName && lastName && phone && password && address) {
     // Make sure the user doesn't already exist.
-    _data.read(_user.folder, phone, function(err, data) {
+    _data.read(_users.folder, phone, function(err, data) {
       if (err) {
         // Hash the password
         const hashedPassword = helper.hash(password);
@@ -66,10 +68,11 @@ _user.post = function(data, callback) {
             firstName: firstName,
             lastName: lastName,
             phone: phone,
-            hashedPassword: password
+            hashedPassword: password,
+            address: address
           };
 
-          _data.create(_user.folder, phone, userObject, function(err) {
+          _data.create(_users.folder, phone, userObject, function(err) {
             if (!err) {
               callback(200);
             } else {
@@ -91,7 +94,7 @@ _user.post = function(data, callback) {
 // Required data : phone
 // Optional data :  none
 // @TODO Only let an authenticated user access their object. Dont let them access anyone elses.
-_user.get = function(data, callback) {
+_users.get = function(data, callback) {
   console.log('USER GET');
   // Validate required data.
   const phone =
@@ -102,7 +105,7 @@ _user.get = function(data, callback) {
   console.log('PHONE =====> ', phone);
   if (phone) {
     // Lookup the user
-    _data.read(_user.folder, phone, function(err, userData) {
+    _data.read(_users.folder, phone, function(err, userData) {
       console.log(userData);
       if (!err && userData) {
         delete userData.hashedPassword;
@@ -119,7 +122,7 @@ _user.get = function(data, callback) {
 // Required data : phone
 // Optional data : firstName, lastName, password (at least one must be specified)
 // @TODO Only let an authenticated user up their object. Dont let them access update elses.
-_user.put = function(data, callback) {
+_users.put = function(data, callback) {
   console.log('USER PUT');
 
   // Check for required field
@@ -146,13 +149,13 @@ _user.put = function(data, callback) {
       : false;
 
   if (phone) {
-    _data.read(_user.folder, phon, function(err, data) {
+    _data.read(_users.folder, phon, function(err, data) {
       if (!err && data) {
         if (firstName) data.firstName = firstName;
         if (lastName) data.lastName = lastName;
         if (password) data.hashedPassword = helper.hash(password);
 
-        _data.update(_user.folder, phone, data, function(err) {
+        _data.update(_users.folder, phone, data, function(err) {
           if (!err) {
             callback(200);
           } else {
@@ -165,6 +168,47 @@ _user.put = function(data, callback) {
     });
   } else {
     callback(400, { Error: 'Missing required field' });
+  }
+};
+
+// Required data : phone
+// Optional data : none.
+// Description : Delete a user.
+_users.delete = function(data, callback) {
+  const phone =
+    typeof data.queryStringObject.phone == 'string' &&
+    data.queryStringObject.phone.trim().length > 0
+      ? data.queryStringObject.phone
+      : false;
+  if (phone) {
+    // Get token from header.
+    const token =
+      typeof data.headers.token == 'string' ? data.headers.token : false;
+    libTokens.verifyToken(token, phone, tokenIsValid => {
+      if (tokenIsValid) {
+        _data.read('users', phone, (err, data) => {
+          if (!err && data) {
+            _data.delete('users', phone, err => {
+              if (!err) {
+                callback(200);
+              } else {
+                callback(500, {
+                  Error: 'Could not delete the specified user.'
+                });
+              }
+            });
+          } else {
+            callback(400, { Error: 'Could not find the specific user.' });
+          }
+        });
+      } else {
+        callback(403, {
+          Error: 'Missing required token in header, or invalid token'
+        });
+      }
+    });
+  } else {
+    callback(400, { Error: 'Missing required fields.' });
   }
 };
 
