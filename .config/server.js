@@ -59,6 +59,7 @@ server.unifiedServer = (req, res) => {
   });
   req.on('end', () => {
     buffer += decoder.end();
+
     // Check the router for a matching path for a handler. If one is not found, use the notFound handler instead.
     const chosenHandler =
       typeof routers[trimmedPath] !== 'undefined'
@@ -74,16 +75,26 @@ server.unifiedServer = (req, res) => {
       payload: helper.parseJsonToObject(buffer)
     };
 
-    chosenHandler(data, (statusCode, payload) => {
+    chosenHandler(data, (statusCode, payload, contentType) => {
+      // Determine the type of response (fallback to JSON)
+      contentType = typeof contentType == 'string' ? contentType : 'json';
+
       // Use the status code returned from the handler, or set the default status code to 200
       statusCode = typeof statusCode == 'number' ? statusCode : 200;
 
-      payload = typeof payload == 'object' ? payload : {};
+      // Return the response parts that are content-type specific
+      let payloadString = '';
+      if (contentType == 'json') {
+        res.setHeader('Content-Type', 'application/json');
+        payload = typeof payload == 'object' ? payload : {};
+        payloadString = JSON.stringify(payload);
+      }
+      if (contentType == 'html') {
+        res.setHeader('Content-Type', 'text/html');
+        payloadString = typeof payload ? payload : '';
+      }
 
-      const payloadString = JSON.stringify(payload);
-
-      // Return the response
-      res.setHeader('Content-Type', 'application/json');
+      // Return the response-parts common to all content-types
       res.writeHead(statusCode);
       res.end(payloadString);
 

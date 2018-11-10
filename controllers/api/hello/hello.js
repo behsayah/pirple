@@ -18,8 +18,10 @@ const lib = function(data, callback) {
     callback(404);
   }
 };
+
 // Hello Container
 const _hello = {};
+
 // Required data: none
 // Optional data: none.
 // Description: Reply just a sentence when we will get a requires.
