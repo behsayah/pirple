@@ -12,7 +12,7 @@
   <meta name="description" content="{head.description}">
 
   <!-- Static Assets -->
-  <link type="image/x-icon" rel="icon" href="favicon.ico">
+  <link type="image/x-icon" rel="icon" href="public/favicon.ico">
   <script type="text/javascript" charset="utf-8" src="public/app.js"></script>
   <link rel="stylesheet" type="text/css" href="public/app.css" />
 
@@ -24,7 +24,9 @@
     <!-- Header -->
     <div class="header">
       <!-- Logo -->
-      <a class="logo" href="/"></a>
+      <a class="logo" href="/">
+        <img src="public/logo.png" alt="logo">
+      </a>
       <!-- Navigation -->
       <ul class="menu">
         <li>
@@ -43,7 +45,7 @@
           <a href="/account/setting">Account Settings</a>
         </li>
         <li class="loggedIn">
-          <a href="/#">Logout</a>
+          <a href="/#" id="logoutButton">Logout</a>
         </li>
       </ul>
     </div>

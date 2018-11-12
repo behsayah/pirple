@@ -1,5 +1,5 @@
 /*
- * Index HTML file handler
+ * Edit an account handler
  * 
  * 
  */
@@ -8,33 +8,32 @@
 const fs = require('fs');
 const path = require('path');
 // Dependencies (Localhosts)
-const config = require('../lib/config');
+const config = require('../../../lib/config');
 
 // Main Container
 var lib = function(data, callback) {
   const acceptableMethods = ['get'];
   if (acceptableMethods.indexOf(data.method) > -1) {
-    _index[data.method](data, callback);
+    _accountDeleted[data.method](data, callback);
   } else {
     callback(405, undefined, 'html');
   }
 };
 
 // Response Main Container
-const _index = {};
+const _accountDeleted = {};
 // Index handler
-_index.get = function(data, callback) {
+_accountDeleted.get = function(data, callback) {
   const templateData = {};
-  templateData['head.title'] = 'Pizza is Your Choise';
-  templateData['head.description'] = 'This is the meta description.';
-  templateData['body.title'] = 'Hello template world!';
-  templateData['body.class'] = 'index';
+  templateData['head.title'] = 'Account Deleted';
+  templateData['head.description'] = 'Your account has been deleted.';
+  templateData['body.class'] = 'accountDeleted';
 
   // Read in a template as a string.
-  _index.getTemplate('index', templateData, (err, str) => {
+  _accountDeleted.getTemplate('accountDeleted', templateData, (err, str) => {
     if (!err && str) {
       // Add the universal header and footer.
-      _index.addUniversalTemplate(str, templateData, (err, str) => {
+      _accountDeleted.addUniversalTemplate(str, templateData, (err, str) => {
         if ((!err, str)) {
           callback(200, str, 'html');
         } else {
@@ -49,17 +48,17 @@ _index.get = function(data, callback) {
 };
 
 // Get the string content of a template.
-_index.getTemplate = (templateName, data, callback) => {
+_accountDeleted.getTemplate = (templateName, data, callback) => {
   templateName =
     typeof templateName == 'string' && templateName.length > 0
       ? templateName
       : false;
   if (templateName) {
-    const templateDir = path.join(__dirname, './../template/');
+    const templateDir = path.join(__dirname, './../../../template/');
     fs.readFile(templateDir + templateName + '.html', 'utf8', (err, str) => {
       if (!err && str && str.length > 0) {
         // Do interpolation on the data
-        let finalString = _index.interpolate(str, data);
+        let finalString = _accountDeleted.interpolate(str, data);
         callback(false, finalString);
       } else {
         callback('No Template could be found.');
@@ -71,13 +70,13 @@ _index.getTemplate = (templateName, data, callback) => {
 };
 
 // Add the universal header and footer to a string, and pass provided data object to the header and footer for interpolation.
-_index.addUniversalTemplate = function(str, data, callback) {
+_accountDeleted.addUniversalTemplate = function(str, data, callback) {
   str = typeof str == 'string' && str.length > 0 ? str : '';
   data = typeof data == 'object' && data !== null ? data : {};
   // Get header
-  _index.getTemplate('_header', data, (err, headerString) => {
+  _accountDeleted.getTemplate('_header', data, (err, headerString) => {
     if (!err && headerString) {
-      _index.getTemplate('_footer', data, (err, footerTemplate) => {
+      _accountDeleted.getTemplate('_footer', data, (err, footerTemplate) => {
         if (!err && footerTemplate) {
           let fullString = headerString + str + footerTemplate;
           callback(false, fullString);
@@ -92,7 +91,7 @@ _index.addUniversalTemplate = function(str, data, callback) {
 };
 
 // Take a given string and a data object and find/replace all the keys within it.
-_index.interpolate = function(str, data) {
+_accountDeleted.interpolate = function(str, data) {
   str = typeof str == 'string' && str.length > 0 ? str : '';
   data = typeof data == 'object' && data !== null ? data : {};
   // Add the templateGlobal to the data object, prepending their key name with "global"

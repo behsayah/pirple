@@ -28,8 +28,7 @@ _users.folder = 'users';
 
 // Save a user
 _users.post = function(data, callback) {
-  console.log('USER POST');
-  console.log('Payload : ', data.payload);
+  // console.log('Payload : ', data.payload);
   // Validate data
   const firstName =
     typeof data.payload.firstName === 'string' &&
@@ -57,7 +56,7 @@ _users.post = function(data, callback) {
       ? data.payload.password.trim()
       : false;
 
-  if (firstName && lastName && phone && password && address) {
+  if (firstName && lastName && phone && password) {
     // Make sure the user doesn't already exist.
     _data.read(_users.folder, phone, function(err, data) {
       if (err) {
@@ -68,7 +67,7 @@ _users.post = function(data, callback) {
             firstName: firstName,
             lastName: lastName,
             phone: phone,
-            hashedPassword: password,
+            hashedPassword: hashedPassword,
             address: address
           };
 
@@ -106,7 +105,6 @@ _users.get = function(data, callback) {
   if (phone) {
     // Lookup the user
     _data.read(_users.folder, phone, function(err, userData) {
-      console.log(userData);
       if (!err && userData) {
         delete userData.hashedPassword;
         callback(200, userData);
@@ -149,7 +147,7 @@ _users.put = function(data, callback) {
       : false;
 
   if (phone) {
-    _data.read(_users.folder, phon, function(err, data) {
+    _data.read(_users.folder, phone, function(err, data) {
       if (!err && data) {
         if (firstName) data.firstName = firstName;
         if (lastName) data.lastName = lastName;
@@ -176,9 +174,9 @@ _users.put = function(data, callback) {
 // Description : Delete a user.
 _users.delete = function(data, callback) {
   const phone =
-    typeof data.queryStringObject.phone == 'string' &&
-    data.queryStringObject.phone.trim().length > 0
-      ? data.queryStringObject.phone
+    typeof data.payload.phone == 'string' &&
+    data.payload.phone.trim().length > 0
+      ? data.payload.phone
       : false;
   if (phone) {
     // Get token from header.
@@ -187,8 +185,10 @@ _users.delete = function(data, callback) {
     libTokens.verifyToken(token, phone, tokenIsValid => {
       if (tokenIsValid) {
         _data.read('users', phone, (err, data) => {
+          console.log('Delete Error 1 =============== > ', err, data);
           if (!err && data) {
             _data.delete('users', phone, err => {
+              console.log('Delete Error 2 =============== > ', err);
               if (!err) {
                 callback(200);
               } else {

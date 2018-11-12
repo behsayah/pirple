@@ -26,3 +26,6 @@ const _notFound = {};
 _notFound.get = (data, callback) => {
   callback(405, undefined, 'html');
 };
+
+// Export Module
+module.exports = lib;

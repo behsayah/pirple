@@ -49,8 +49,8 @@ _toknes.post = (data, callback) => {
             id: tokenId,
             expires: expires
           };
-          _data.create('token', tokenId, tokenObject, function(err) {
-            if (err) {
+          _data.create('tokens', tokenId, tokenObject, function(err) {
+            if (!err) {
               callback(200, tokenObject);
             } else {
               callback(500, { Error: 'Could not crete the new token' });
@@ -159,3 +159,5 @@ _toknes.delete = (data, callback) => {
     });
   }
 };
+
+module.exports = lib;

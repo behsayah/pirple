@@ -61,11 +61,13 @@ server.unifiedServer = (req, res) => {
     buffer += decoder.end();
 
     // Check the router for a matching path for a handler. If one is not found, use the notFound handler instead.
-    const chosenHandler =
+    let chosenHandler =
       typeof routers[trimmedPath] !== 'undefined'
         ? routers[trimmedPath]
         : routers['404'];
-
+    // If the request is within the public directory, use the public handler insted.
+    chosenHandler =
+      trimmedPath.indexOf('public/') > -1 ? routers['public'] : chosenHandler;
     // Construct the data object to send to the handler
     const data = {
       trimmedPath: trimmedPath,
@@ -74,6 +76,7 @@ server.unifiedServer = (req, res) => {
       headers: headers,
       payload: helper.parseJsonToObject(buffer)
     };
+    // console.log('======================= trimmedPath : ', trimmedPath);
 
     chosenHandler(data, (statusCode, payload, contentType) => {
       // Determine the type of response (fallback to JSON)
@@ -91,7 +94,31 @@ server.unifiedServer = (req, res) => {
       }
       if (contentType == 'html') {
         res.setHeader('Content-Type', 'text/html');
-        payloadString = typeof payload ? payload : '';
+        payloadString = typeof payload == 'string' ? payload : '';
+      }
+      if (contentType == 'favicon') {
+        res.setHeader('Content-Type', 'image/x-icon');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+      }
+
+      if (contentType == 'css') {
+        res.setHeader('Content-Type', 'text/css');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+      }
+
+      if (contentType == 'png') {
+        res.setHeader('Content-Type', 'image/png');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+      }
+
+      if (contentType == 'jpg') {
+        res.setHeader('Content-Type', 'image/jpeg');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+      }
+
+      if (contentType == 'plain') {
+        res.setHeader('Content-Type', 'text/plain');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
       }
 
       // Return the response-parts common to all content-types
