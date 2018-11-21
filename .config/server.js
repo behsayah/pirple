@@ -1,7 +1,7 @@
 /*
  * Server-related tasks
  *
- * 
+ *
  */
 
 // Dependencies (NodeJS)
@@ -11,6 +11,9 @@ const http = require('http');
 const https = require('https');
 const path = require('path');
 const StringDecoder = require('string_decoder').StringDecoder;
+// Dependencies (Debug)
+const util = require('util');
+const debug = util.debuglog('server');
 
 // Dependecies (local)
 const config = require('../lib/config');
@@ -77,61 +80,91 @@ server.unifiedServer = (req, res) => {
       payload: helper.parseJsonToObject(buffer)
     };
     // console.log('======================= trimmedPath : ', trimmedPath);
-
-    chosenHandler(data, (statusCode, payload, contentType) => {
-      // Determine the type of response (fallback to JSON)
-      contentType = typeof contentType == 'string' ? contentType : 'json';
-
-      // Use the status code returned from the handler, or set the default status code to 200
-      statusCode = typeof statusCode == 'number' ? statusCode : 200;
-
-      // Return the response parts that are content-type specific
-      let payloadString = '';
-      if (contentType == 'json') {
-        res.setHeader('Content-Type', 'application/json');
-        payload = typeof payload == 'object' ? payload : {};
-        payloadString = JSON.stringify(payload);
-      }
-      if (contentType == 'html') {
-        res.setHeader('Content-Type', 'text/html');
-        payloadString = typeof payload == 'string' ? payload : '';
-      }
-      if (contentType == 'favicon') {
-        res.setHeader('Content-Type', 'image/x-icon');
-        payloadString = typeof payload !== 'undefined' ? payload : '';
-      }
-
-      if (contentType == 'css') {
-        res.setHeader('Content-Type', 'text/css');
-        payloadString = typeof payload !== 'undefined' ? payload : '';
-      }
-
-      if (contentType == 'png') {
-        res.setHeader('Content-Type', 'image/png');
-        payloadString = typeof payload !== 'undefined' ? payload : '';
-      }
-
-      if (contentType == 'jpg') {
-        res.setHeader('Content-Type', 'image/jpeg');
-        payloadString = typeof payload !== 'undefined' ? payload : '';
-      }
-
-      if (contentType == 'plain') {
-        res.setHeader('Content-Type', 'text/plain');
-        payloadString = typeof payload !== 'undefined' ? payload : '';
-      }
-
-      // Return the response-parts common to all content-types
-      res.writeHead(statusCode);
-      res.end(payloadString);
-
-      const logPath = trimmedPath == '' ? 'localhost' : trimmedPath;
-
-      // Console Log :
-      console.log('\x1b[32m%s\x1b[0m', 'Response was sent : ' + logPath);
-    });
+    try {
+      chosenHandler(data, (statusCode, payload, contentType) => {
+        server.processHandlerResponse(
+          res,
+          method,
+          trimmedPath,
+          statusCode,
+          payload,
+          contentType
+        );
+      });
+    } catch (error) {
+      debug(error);
+      server.processHandlerResponse(
+        res,
+        method,
+        trimmedPath,
+        500,
+        { Error: 'An unknown error has occured' },
+        'json'
+      );
+    }
   });
   // @END-REGION
+};
+
+// Process the response from the handler.
+server.processHandlerResponse = (
+  res,
+  method,
+  trimmedPath,
+  statusCode,
+  payload,
+  contentType
+) => {
+  // Determine the type of response (fallback to JSON)
+  contentType = typeof contentType == 'string' ? contentType : 'json';
+
+  // Use the status code returned from the handler, or set the default status code to 200
+  statusCode = typeof statusCode == 'number' ? statusCode : 200;
+
+  // Return the response parts that are content-type specific
+  let payloadString = '';
+  if (contentType == 'json') {
+    res.setHeader('Content-Type', 'application/json');
+    payload = typeof payload == 'object' ? payload : {};
+    payloadString = JSON.stringify(payload);
+  }
+  if (contentType == 'html') {
+    res.setHeader('Content-Type', 'text/html');
+    payloadString = typeof payload == 'string' ? payload : '';
+  }
+  if (contentType == 'favicon') {
+    res.setHeader('Content-Type', 'image/x-icon');
+    payloadString = typeof payload !== 'undefined' ? payload : '';
+  }
+
+  if (contentType == 'css') {
+    res.setHeader('Content-Type', 'text/css');
+    payloadString = typeof payload !== 'undefined' ? payload : '';
+  }
+
+  if (contentType == 'png') {
+    res.setHeader('Content-Type', 'image/png');
+    payloadString = typeof payload !== 'undefined' ? payload : '';
+  }
+
+  if (contentType == 'jpg') {
+    res.setHeader('Content-Type', 'image/jpeg');
+    payloadString = typeof payload !== 'undefined' ? payload : '';
+  }
+
+  if (contentType == 'plain') {
+    res.setHeader('Content-Type', 'text/plain');
+    payloadString = typeof payload !== 'undefined' ? payload : '';
+  }
+
+  // Return the response-parts common to all content-types
+  res.writeHead(statusCode);
+  res.end(payloadString);
+
+  const logPath = trimmedPath == '' ? 'localhost' : trimmedPath;
+
+  // Console Log :
+  console.log('\x1b[32m%s\x1b[0m', 'Response was sent : ' + logPath);
 };
 
 // Init server
