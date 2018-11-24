@@ -1,8 +1,8 @@
 /*
- * Users Main 
+ * Users Main
  *
- * 
- * 
+ *
+ *
  */
 
 // Dependencies (Node JS)
@@ -10,6 +10,7 @@
 const _data = require('../../../lib/data');
 const helper = require('../../../lib/helper');
 const libTokens = require('../../../lib/token');
+const libRegEx = require('../../../lib/regex');
 
 // Main Container
 const lib = function(data, callback) {
@@ -27,6 +28,9 @@ const _users = {};
 _users.folder = 'users';
 
 // Save a user
+// Required data : data.
+// Optional data : none.
+// @TODO Only let an authenticated user access their object. Don't let them access anyone else.
 _users.post = function(data, callback) {
   // console.log('Payload : ', data.payload);
   // Validate data
@@ -55,36 +59,48 @@ _users.post = function(data, callback) {
     data.payload.password.trim().length > 0
       ? data.payload.password.trim()
       : false;
+  const email =
+    typeof data.payload.email == 'string' &&
+    data.payload.email.trim().length > 0
+      ? data.payload.email.trim()
+      : false;
+  if (firstName && lastName && phone && password && email && address) {
+    const _reg = RegExp(libRegEx.email());
+    if (_reg.test(email)) {
+      // Make sure the user doesn't already exist.
+      _data.read(_users.folder, phone, function(err, data) {
+        if (err) {
+          // Hash the password
+          const hashedPassword = helper.hash(password);
+          if (hashedPassword) {
+            const userObject = {
+              firstName: firstName,
+              lastName: lastName,
+              phone: phone,
+              hashedPassword: hashedPassword,
+              address: address,
+              email: email
+            };
 
-  if (firstName && lastName && phone && password) {
-    // Make sure the user doesn't already exist.
-    _data.read(_users.folder, phone, function(err, data) {
-      if (err) {
-        // Hash the password
-        const hashedPassword = helper.hash(password);
-        if (hashedPassword) {
-          const userObject = {
-            firstName: firstName,
-            lastName: lastName,
-            phone: phone,
-            hashedPassword: hashedPassword,
-            address: address
-          };
-
-          _data.create(_users.folder, phone, userObject, function(err) {
-            if (!err) {
-              callback(200);
-            } else {
-              callback(500, { Error: 'Could not create the new user.' });
-            }
-          });
+            _data.create(_users.folder, phone, userObject, function(err) {
+              if (!err) {
+                callback(200);
+              } else {
+                callback(500, { Error: 'Could not create the new user.' });
+              }
+            });
+          } else {
+            callback(500, { Error: "Could not hash the user's password." });
+          }
         } else {
-          callback(500, { Error: "Could not hash the user's password." });
+          callback(400, {
+            Error: 'A user with this phone number already exist'
+          });
         }
-      } else {
-        callback(400, { Error: 'A user with this phone number already exist' });
-      }
-    });
+      });
+    } else {
+      callback(400, { Error: 'The email address is not correct' });
+    }
   } else {
     callback(400, { Error: 'Missing required fields' });
   }
@@ -122,6 +138,7 @@ _users.get = function(data, callback) {
 // @TODO Only let an authenticated user up their object. Dont let them access update elses.
 _users.put = function(data, callback) {
   console.log('USER PUT');
+  console.log('PHONE ===> ', data.payload);
 
   // Check for required field
   const phone =
@@ -145,25 +162,41 @@ _users.put = function(data, callback) {
     data.payload.password.trim().length > 0
       ? data.payload.password.trim()
       : false;
+  const address =
+    typeof data.payload.address == 'string' &&
+    data.payload.address.trim().length > 0
+      ? data.payload.address.trim()
+      : false;
+  const email =
+    typeof data.payload.email == 'string' &&
+    data.payload.email.trim().length > 0
+      ? data.payload.email.trim()
+      : false;
 
   if (phone) {
-    _data.read(_users.folder, phone, function(err, data) {
-      if (!err && data) {
-        if (firstName) data.firstName = firstName;
-        if (lastName) data.lastName = lastName;
-        if (password) data.hashedPassword = helper.hash(password);
+    if (_reg.test(email)) {
+      _data.read(_users.folder, phone, function(err, data) {
+        if (!err && data) {
+          if (firstName) data.firstName = firstName;
+          if (lastName) data.lastName = lastName;
+          if (password) data.hashedPassword = helper.hash(password);
+          if (email) data.email = email;
+          if (address) data.address = address;
 
-        _data.update(_users.folder, phone, data, function(err) {
-          if (!err) {
-            callback(200);
-          } else {
-            callback(500, { Error: 'Could not update the user.' });
-          }
-        });
-      } else {
-        callback(400, { Error: 'Specified user does not exist.' });
-      }
-    });
+          _data.update(_users.folder, phone, data, function(err) {
+            if (!err) {
+              callback(200);
+            } else {
+              callback(500, { Error: 'Could not update the user.' });
+            }
+          });
+        } else {
+          callback(400, { Error: 'Specified user does not exist.' });
+        }
+      });
+    } else {
+      callback(400, { Error: 'The email address is not correct' });
+    }
   } else {
     callback(400, { Error: 'Missing required field' });
   }

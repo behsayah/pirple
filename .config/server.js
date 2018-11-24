@@ -79,8 +79,9 @@ server.unifiedServer = (req, res) => {
       headers: headers,
       payload: helper.parseJsonToObject(buffer)
     };
-    // console.log('======================= trimmedPath : ', trimmedPath);
+
     try {
+      console.dir(trimmedPath, { colors: true });
       chosenHandler(data, (statusCode, payload, contentType) => {
         server.processHandlerResponse(
           res,
@@ -92,6 +93,7 @@ server.unifiedServer = (req, res) => {
         );
       });
     } catch (error) {
+      console.dir(error, { colors: true });
       debug(error);
       server.processHandlerResponse(
         res,

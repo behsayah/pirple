@@ -1,8 +1,8 @@
 /*
  * Handle Token
  *
- * 
- * 
+ *
+ *
  */
 
 // Dependencies (Node JS)
@@ -24,21 +24,24 @@ const lib = (data, callback) => {
 const _toknes = {};
 
 // Folder
-_toknes.folder = 'users';
+_toknes.folder = 'tokens';
+_toknes.userFolder = 'users';
 // Tokens - post
 // Required Data : phone, password
 // Optional Data : none
 _toknes.post = (data, callback) => {
   const phone =
-    typeof data.payload.phone && data.payload.phone.trim().length > 0
+    typeof data.payload.phone == 'string' &&
+    data.payload.phone.trim().length > 0
       ? data.payload.phone
       : false;
   const password =
-    typeof data.payload.password && data.payload.password.trim().length > 0
+    typeof data.payload.password == 'string' &&
+    data.payload.password.trim().length > 0
       ? data.payload.password
       : false;
   if (phone && password) {
-    _data.read(_toknes.folder, phone, function(err, data) {
+    _data.read(_toknes.userFolder, phone, function(err, data) {
       if (!err && data) {
         const hashedPassword = hellpers.hash(password);
         if (hashedPassword === data.hashedPassword) {
@@ -49,7 +52,7 @@ _toknes.post = (data, callback) => {
             id: tokenId,
             expires: expires
           };
-          _data.create('tokens', tokenId, tokenObject, function(err) {
+          _data.create(_toknes.folder, tokenId, tokenObject, function(err) {
             if (!err) {
               callback(200, tokenObject);
             } else {
@@ -60,6 +63,8 @@ _toknes.post = (data, callback) => {
           callback(400, { Error: 'The password is wrong.' });
         }
       } else {
+        console.log('PHONE : ', phone);
+        console.log('PASSWORD : ', password);
         callback(400, { Error: 'Could not find specified user' });
       }
     });
@@ -73,13 +78,14 @@ _toknes.post = (data, callback) => {
 // Optional Data : none
 _toknes.get = (data, callback) => {
   const id =
-    typeof data.payload.id == 'string' && data.payload.id.trim().length > 0
-      ? data.payload.id
+    typeof data.queryStringObject.id == 'string' &&
+    data.queryStringObject.id.trim().length > 0
+      ? data.queryStringObject.id
       : false;
   if (id) {
-    _data.read(_toknes.folder, id, function(err, data) {
-      if (!err && data) {
-        callback(200, data);
+    _data.read(_toknes.folder, id, function(err, tokenInfo) {
+      if (!err && tokenInfo) {
+        callback(200, tokenInfo);
       } else {
         callback(404);
       }
@@ -94,8 +100,9 @@ _toknes.get = (data, callback) => {
 // Optional Data : none
 _toknes.put = (data, callback) => {
   const id =
-    typeof data.payload.id == 'string' && data.payload.id.trim().length > 0
-      ? data.payload.id
+    typeof data.queryStringObject.id == 'string' &&
+    data.queryStringObject.id.trim().length > 0
+      ? data.queryStringObject.id
       : false;
   const extend =
     typeof data.payload.extend == 'boolean' && data.payload.extend
@@ -136,9 +143,12 @@ _toknes.put = (data, callback) => {
 // Optional Data : none;
 _toknes.delete = (data, callback) => {
   const id =
-    typeof data.payload.id == 'string' && data.payload.id.trim().length > 0
-      ? data.payload.id.trim()
+    typeof data.queryStringObject.id == 'string' &&
+    data.queryStringObject.id.trim().length > 0
+      ? data.queryStringObject.id.trim()
       : false;
+  console.dir(data.queryStringObject, { colors: true });
+
   if (id) {
     _data.read(_toknes.folder, id, (err, data) => {
       if (!err && data) {
