@@ -81,7 +81,6 @@ server.unifiedServer = (req, res) => {
     };
 
     try {
-      console.dir(trimmedPath, { colors: true });
       chosenHandler(data, (statusCode, payload, contentType) => {
         server.processHandlerResponse(
           res,
@@ -93,7 +92,7 @@ server.unifiedServer = (req, res) => {
         );
       });
     } catch (error) {
-      console.dir(error, { colors: true });
+      // console.dir(error, { colors: true });
       debug(error);
       server.processHandlerResponse(
         res,
@@ -166,7 +165,7 @@ server.processHandlerResponse = (
   const logPath = trimmedPath == '' ? 'localhost' : trimmedPath;
 
   // Console Log :
-  console.log('\x1b[32m%s\x1b[0m', 'Response was sent : ' + logPath);
+  console.log('\x1b[35m%s\x1b[0m', '## /' + logPath);
 };
 
 // Init server

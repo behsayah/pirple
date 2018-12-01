@@ -254,7 +254,7 @@ app.formResponseProcessor = function(formId, requestPayload, responsePayload) {
         } else {
           // If successful, set the token and redirect the user
           app.setSessionToken(newResponsePayload);
-          window.location = '/checks/all';
+          window.location = '/';
         }
       }
     );
@@ -262,7 +262,7 @@ app.formResponseProcessor = function(formId, requestPayload, responsePayload) {
   // If login was successful, set the token in localstorage and redirect the user
   if (formId == 'sessionCreate') {
     app.setSessionToken(responsePayload);
-    window.location = '/checks/all';
+    window.location = '/';
   }
 
   // If forms saved successfully and they have success messages, show them
@@ -462,4 +462,101 @@ app.init = function() {
 // Call the init processes after the window loads
 window.onload = function() {
   app.init();
+};
+
+// Add to shopping cart
+app.addToCart = item => {
+  const qty = Number.parseInt(document.getElementById('txt-' + item).value);
+  var phone =
+    typeof app.config.sessionToken.phone == 'string'
+      ? app.config.sessionToken.phone
+      : false;
+
+  var token =
+    typeof app.config.sessionToken.id == 'string'
+      ? app.config.sessionToken.id
+      : false;
+
+  if (qty && phone && token && item) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        document.getElementById('txt-' + item).value = 0;
+        alert('Your order is registerd.');
+      }
+    };
+    xhttp.open('POST', '/api/cart', true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.setRequestHeader('token', token);
+    xhttp.send(JSON.stringify({ phone: phone, item: item, qty: qty }));
+  } else if (!qty || qty < 0) {
+    alert('Please select qty bigger than ziro');
+  } else if (!token || !phone) {
+    alert('Please login to the website.');
+  }
+};
+
+app.getCheckout = () => {
+  let phone =
+    typeof app.config.sessionToken.phone == 'string'
+      ? app.config.sessionToken.phone
+      : false;
+
+  let token =
+    typeof app.config.sessionToken.id == 'string'
+      ? app.config.sessionToken.id
+      : false;
+
+  if (phone && token) {
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        // console.log(xhttp.response);
+        // console.log(this.responseText);
+        document.body.innerHTML = xhttp.response;
+      }
+    };
+    xhttp.open('GET', '/checkout', true);
+    xhttp.setRequestHeader('Content-type', 'application/json');
+    xhttp.setRequestHeader('token', token);
+    xhttp.setRequestHeader('phone', phone);
+    let payload = { phone: phone };
+    let payloadString = JSON.stringify(payload);
+    console.log('payloadString =====> ', payloadString);
+    xhttp.send(payloadString);
+  } else if (!qty || qty < 0) {
+    alert('Please select qty bigger than ziro');
+  } else if (!token || !phone) {
+    alert('Please login to the website.');
+  }
+};
+
+app.checkout = () => {
+  let phone =
+    typeof app.config.sessionToken.phone == 'string'
+      ? app.config.sessionToken.phone
+      : false;
+
+  let token =
+    typeof app.config.sessionToken.id == 'string'
+      ? app.config.sessionToken.id
+      : false;
+
+  if (phone && token) {
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        alert('Your order will be delivered!');
+        window.location = '/';
+      }
+    };
+    xhttp.open('POST', '/api/cart/checkout', true);
+    xhttp.setRequestHeader('Content-type', 'application/json');
+    xhttp.setRequestHeader('token', token);
+    let payload = { phone: phone };
+    let payloadString = JSON.stringify(payload);
+    xhttp.send(payloadString);
+  } else if (!token || !phone) {
+    alert('Please login to the website.');
+  }
 };

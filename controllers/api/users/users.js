@@ -79,7 +79,8 @@ _users.post = function(data, callback) {
               phone: phone,
               hashedPassword: hashedPassword,
               address: address,
-              email: email
+              email: email,
+              date: new Date()
             };
 
             _data.create(_users.folder, phone, userObject, function(err) {

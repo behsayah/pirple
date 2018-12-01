@@ -326,3 +326,24 @@ td a:active {
   margin-top: 40px;
   display: none;
 }
+
+div[class^='btn-'] {
+  width: 80px;
+  color: white;
+  background-color: red;
+  cursor: pointer;
+}
+
+/* Personal Style */
+input[class^='txt-'] {
+  border-radius: 5px;
+  width: 30px;
+  padding: 0;
+  height: 18px;
+}
+button[class^='btn-'] {
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 3px;
+  background-color: lightgray;
+}

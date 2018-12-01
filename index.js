@@ -6,7 +6,7 @@
 // Dependencies
 var server = require('./.config/server');
 var workers = require('./.config/workers');
-const cli = require('./lib/cli');
+const cli = require('./lib/cli/cli');
 
 // Declare the app
 var app = {};

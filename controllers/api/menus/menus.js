@@ -58,9 +58,6 @@ _menu.post = function(data, callback) {
           estimateTime: estimateTime
         };
         _data.create(_menu.folder, title, item, err => {
-          console.dir(title, { colors: true });
-          console.dir(item, { colors: true });
-          console.dir(err, { colors: true });
           if (!err) {
             callback(200);
           } else {
@@ -86,7 +83,6 @@ _menu.get = (data, callback) => {
     data.queryStringObject.title.trim().length > 0
       ? data.queryStringObject.title.trim()
       : false;
-  console.log('TITLE', title);
   if (title) {
     _data.read(_menu.folder, title, (err, info) => {
       if (!err && info) {
