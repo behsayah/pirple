@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 // Dependencies (Localhosts)
-const config = require('../../../lib/config');
+const config = require('../../../.config/config');
 const _data = require('../../../lib/data');
 
 // Main Container

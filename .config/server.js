@@ -16,7 +16,7 @@ const util = require('util');
 const debug = util.debuglog('server');
 
 // Dependecies (local)
-const config = require('../lib/config');
+const config = require('../.config/config');
 const routers = require('../lib/router');
 const helper = require('../lib/helper');
 

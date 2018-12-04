@@ -1,21 +1,29 @@
 /*
  *
  * Handle requiest for hello URI.
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 // Dependencies (NodeJS)
+const os = require('os');
+const cluster = require('cluster');
 // Dependencies (Localhost)
 
 // Main Container
 const lib = function(data, callback) {
-  const acceptableMethod = ['get'];
-  if (acceptableMethod.indexOf(data.method) > -1) {
-    _hello[data.method](data, callback);
+  if (cluster.isMaster) {
+    for (let i = 0; i < os.cpus().length; i++) {
+      cluster.fork();
+    }
   } else {
-    callback(404);
+    const acceptableMethod = ['get'];
+    if (acceptableMethod.indexOf(data.method) > -1) {
+      _hello[data.method](data, callback);
+    } else {
+      callback(404);
+    }
   }
 };
 
