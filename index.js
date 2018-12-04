@@ -17,23 +17,29 @@ var app = {};
 
 // Init function
 app.init = function() {
-  if (cluster.isMaster) {
-    // Start the workers
-    // workers.init();
+  server.init();
 
-    // Start the CLI, but make sure it starts last.
-    setTimeout(() => {
-      cli.init();
-    }, 50);
+  setTimeout(() => {
+    cli.init();
+  }, 50);
 
-    for (let i = 0; i < os.cpus().length; i++) {
-      cluster.fork();
-    }
-  } else {
-    // Start the server
-    server.init();
-    _tty.screenSize();
-  }
+  // if (cluster.isMaster) {
+  //   // Start the workers
+  //   // workers.init();
+
+  //   // Start the CLI, but make sure it starts last.
+  //   setTimeout(() => {
+  //     cli.init();
+  //   }, 50);
+
+  //   for (let i = 0; i < os.cpus().length; i++) {
+  //     cluster.fork();
+  //   }
+  // } else {
+  //   // Start the server
+  //   server.init();
+  //   _tty.screenSize();
+  // }
 };
 
 // Self executing
