@@ -47,6 +47,7 @@ _checkout.post = (data, callback) => {
     if (token && phone) {
       _token.verifyToken(token, phone, isValid => {
         if (isValid) {
+          // Find the user and read the user's car.
           _data.read(_checkout.folders.user, phone, (err, userInfo) => {
             if (!err && userInfo) {
               if (
@@ -59,7 +60,9 @@ _checkout.post = (data, callback) => {
                   amount += element.price * 8;
                 });
                 if (amount > 0) {
+                  // Create a purchase ID
                   const purcheseId = hellpers.createRandomString(16);
+                  // Process payment.
                   _pay.pay(
                     {
                       amount: amount,
@@ -71,12 +74,13 @@ _checkout.post = (data, callback) => {
                         console.log(
                           '============>SUCCESS PAYMENT<============'
                         );
+                        // Make sure that the user have purchase property.
                         userInfo.purchese =
                           typeof userInfo.purchese == 'object' &&
                           Array.isArray(userInfo.purchese)
                             ? userInfo.purchese
                             : [];
-
+                        // Add the order to user's history.
                         userInfo.purchese.push({
                           items: userInfo.cart,
                           id: purcheseId,
@@ -84,7 +88,7 @@ _checkout.post = (data, callback) => {
                         });
 
                         userInfo.cart = [];
-
+                        // Update the user's information.
                         _data.update(
                           _checkout.folders.user,
                           phone,
@@ -96,6 +100,7 @@ _checkout.post = (data, callback) => {
                                 subject: 'Thanks for your order!',
                                 text: 'Your payment goes throw!'
                               };
+                              // Send the reciet to the customer.
                               _email.send(payload, (err, body) => {
                                 if (!err) {
                                   callback(200, {
